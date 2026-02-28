@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JarvisClaw Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <header class="chat-header">
+            <h1>jarvisclaw</h1>
+            <div class="subtitle">(CODING-1)</div>
+            <div class="controls">
+                <button id="btn-start" class="btn btn-blue">⏻ Start</button>
+                <button id="btn-restart" class="btn btn-dark">🔄 Restart</button>
+                <button id="btn-stop" class="btn btn-red">⏹ Stop</button>
+                <button id="btn-clear" class="btn btn-dark">🗑 Clear</button>
+            </div>
+        </header>
+
+        <main class="chat-messages" id="chat-messages">
+            <!-- Messages will appear here -->
+            <div class="message system-message">
+                Welcome to JarvisClaw Chat. System is ready.
+            </div>
+        </main>
+
+        <footer class="chat-input-area">
+            <div class="input-wrapper">
+                <span class="prompt-icon">»</span>
+                <input type="text" id="chat-input" placeholder="Type a command..." autocomplete="off">
+                <button id="btn-send" class="btn-send">Send</button>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
