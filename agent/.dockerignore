@@ -1,0 +1,27 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Project specific
+downloads/
+data/
+*.tar.gz
+*.bak
+archive-2026-02-19T051837Z (1).tar.gz
+Screenshot_20260221_112103.jpg
+
+# OS
+.DS_Store
+Thumbs.db
