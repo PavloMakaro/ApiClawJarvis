@@ -9,8 +9,21 @@ logger = logging.getLogger(__name__)
 
 import os
 import time
+import socket
 
 DOWNLOADS_DIR = "downloads"
+
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
 
 async def chat_endpoint(request):
     chat_id = None
@@ -57,16 +70,16 @@ async def chat_endpoint(request):
         try:
             data = await request.json()
         except Exception:
-            return web.Response(status=400, text="Invalid JSON or missing multipart/form-data")
+            return web.Response(status=400, text="Invalid JSON or missing multipart/form-data", headers={'Access-Control-Allow-Origin': '*'})
 
         chat_id = data.get("chat_id")
         message = data.get("message")
 
     if not chat_id:
-        return web.Response(status=400, text="Missing chat_id")
+        return web.Response(status=400, text="Missing chat_id", headers={'Access-Control-Allow-Origin': '*'})
 
     if not message and not file_path:
-        return web.Response(status=400, text="Missing message or file")
+        return web.Response(status=400, text="Missing message or file", headers={'Access-Control-Allow-Origin': '*'})
 
     # Construct prompt if file is uploaded
     prompt = message
@@ -136,11 +149,11 @@ async def clear_endpoint(request):
     try:
         data = await request.json()
     except Exception:
-        return web.Response(status=400, text="Invalid JSON")
+        return web.Response(status=400, text="Invalid JSON", headers={'Access-Control-Allow-Origin': '*'})
 
     chat_id = data.get("chat_id")
     if not chat_id:
-        return web.Response(status=400, text="Missing chat_id")
+        return web.Response(status=400, text="Missing chat_id", headers={'Access-Control-Allow-Origin': '*'})
 
     chat_id_str = str(chat_id)
     async with session_lock:
@@ -148,28 +161,28 @@ async def clear_endpoint(request):
         save_sessions()
     user_usage.pop(chat_id_str, None)
 
-    return web.json_response({"status": "success", "message": "Память очищена, сэр."})
+    return web.json_response({"status": "success", "message": "Память очищена, сэр."}, headers={'Access-Control-Allow-Origin': '*'})
 
 async def stop_endpoint(request):
     try:
         data = await request.json()
     except Exception:
-        return web.Response(status=400, text="Invalid JSON")
+        return web.Response(status=400, text="Invalid JSON", headers={'Access-Control-Allow-Origin': '*'})
 
     chat_id = data.get("chat_id")
     if not chat_id:
-        return web.Response(status=400, text="Missing chat_id")
+        return web.Response(status=400, text="Missing chat_id", headers={'Access-Control-Allow-Origin': '*'})
 
     chat_id_str = str(chat_id)
     if chat_id_str in running_tasks:
         task = running_tasks[chat_id_str]
         if not task.done():
             task.cancel()
-            return web.json_response({"status": "success", "message": "Остановлено."})
+            return web.json_response({"status": "success", "message": "Остановлено."}, headers={'Access-Control-Allow-Origin': '*'})
         else:
-            return web.json_response({"status": "success", "message": "Ничего не выполняется."})
+            return web.json_response({"status": "success", "message": "Ничего не выполняется."}, headers={'Access-Control-Allow-Origin': '*'})
     else:
-        return web.json_response({"status": "success", "message": "Ничего не выполняется."})
+        return web.json_response({"status": "success", "message": "Ничего не выполняется."}, headers={'Access-Control-Allow-Origin': '*'})
 
 async def init_app():
     app = web.Application()
@@ -181,8 +194,8 @@ async def init_app():
     async def options_handler(request):
         return web.Response(headers={
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS, GET',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
         })
     app.router.add_options('/chat', options_handler)
     app.router.add_options('/clear', options_handler)
@@ -196,4 +209,23 @@ async def start_api_server(host='0.0.0.0', port=8080):
     await runner.setup()
     site = web.TCPSite(runner, host, port)
     await site.start()
-    logger.info(f"API server started on http://{host}:{port}")
+
+    local_ip = get_local_ip()
+    endpoints_text = f"""API Endpoints
+================
+Base URL: http://{local_ip}:{port}
+Local URL: http://localhost:{port}
+
+Endpoints:
+  POST /chat  - Send message/files (JSON or multipart/form-data), returns SSE stream
+  POST /clear - Clear session memory (JSON)
+  POST /stop  - Stop current generation (JSON)
+"""
+    try:
+        with open("api_endpoints.txt", "w") as f:
+            f.write(endpoints_text)
+        logger.info(f"API endpoints written to api_endpoints.txt")
+    except Exception as e:
+        logger.error(f"Failed to write api_endpoints.txt: {e}")
+
+    logger.info(f"API server started on http://{host}:{port} and http://{local_ip}:{port}")

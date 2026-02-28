@@ -1,0 +1,9 @@
+API Endpoints
+================
+Base URL: http://192.168.0.2:8080
+Local URL: http://localhost:8080
+
+Endpoints:
+  POST /chat  - Send message/files (JSON or multipart/form-data), returns SSE stream
+  POST /clear - Clear session memory (JSON)
+  POST /stop  - Stop current generation (JSON)
