@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+downloads/
+data/
+voice_*.ogg
+photo_*.jpg
+.env
+config.py

@@ -1,0 +1,168 @@
+# Инструкция по использованию парсера xatab
+
+## Описание модуля
+Модуль `xatab_parser.py` предназначен для парсинга сайта xatab-repack.ru, поиска игр и скачивания торрент-файлов.
+
+## Установка зависимостей
+Перед использованием необходимо установить требуемые библиотеки:
+```bash
+pip install requests beautifulsoup4 lxml
+```
+
+## Основные функции модуля
+
+### 1. Инициализация парсера
+```python
+from xatab_parser import XatabParser
+
+parser = XatabParser()
+```
+
+### 2. Поиск игр по названию
+```python
+result = parser.search_games("Название игры")
+if result['success']:
+    for game in result['games']:
+        print(f"Название: {game['title']}")
+        print(f"URL: {game['url']}")
+        print(f"Дата: {game['date']}")
+        print(f"Описание: {game['description'][:100]}...")
+```
+
+### 3. Получение детальной информации об игре
+```python
+game_info = parser.get_game_details("URL_страницы_с_игрой")
+if game_info['success']:
+    print(f"Название: {game_info['title']}")
+    print(f"Торрент ссылки: {len(game_info['torrent_links'])}")
+
+    for link in game_info['torrent_links']:
+        print(f"  - {link['text']}: {link['url']}")
+```
+
+### 4. Скачивание торрент-файла
+```python
+download_result = parser.download_torrent("URL_торрент_файла")
+if download_result['success']:
+    print(f"Файл сохранен: {download_result['filepath']}")
+    print(f"Размер: {download_result['size']} байт")
+else:
+    print(f"Ошибка: {download_result['error']}")
+```
+
+### 5. Получение последних игр
+```python
+latest = parser.get_latest_games(page=1)  # page - номер страницы
+if latest['success']:
+    print(f"Найдено игр: {latest['count']}")
+    for game in latest['games']:
+        print(f"- {game['title']} ({game['date']})")
+```
+
+## Пример полного рабочего скрипта
+```python
+#!/usr/bin/env python3
+from xatab_parser import XatabParser
+import os
+
+def main():
+    parser = XatabParser()
+
+    # Шаг 1: Поиск игры
+    search_result = parser.search_games("Cyberpunk 2077")
+
+    if not search_result['success'] or not search_result['games']:
+        print("Игра не найдена")
+        return
+
+    # Берем первую найденную игру
+    game = search_result['games'][0]
+    print(f"Найдена игра: {game['title']}")
+
+    # Шаг 2: Получаем детальную информацию
+    details = parser.get_game_details(game['url'])
+
+    if not details['success']:
+        print("Не удалось получить информацию об игре")
+        return
+
+    # Шаг 3: Ищем торрент ссылку
+    if not details['torrent_links']:
+        print("Торрент ссылки не найдены")
+        return
+
+    # Берем первую торрент ссылку
+    torrent_url = details['torrent_links'][0]['url']
+    print(f"Найден торрент: {torrent_url}")
+
+    # Шаг 4: Скачиваем торрент файл
+    download_result = parser.download_torrent(torrent_url)
+
+    if download_result['success']:
+        print(f"\n✅ Торрент успешно скачан!")
+        print(f"Файл: {download_result['filepath']}")
+        print(f"Размер: {download_result['size']} байт")
+
+        # Можно запустить торрент-клиент для загрузки
+        # Например, используя transmission-cli или qbittorrent
+    else:
+        print(f"\n❌ Ошибка при скачивании: {download_result['error']}")
+
+if __name__ == "__main__":
+    main()
+```
+
+## Интеграция с торрент-клиентом
+После скачивания .torrent файла, вы можете использовать:
+
+### Transmission (командная строка):
+```bash
+transmission-cli /путь/к/файлу.torrent
+```
+
+### qBittorrent (через API):
+```python
+import requests
+
+# Загрузка торрента в qBittorrent
+def add_to_qbittorrent(torrent_file_path):
+    with open(torrent_file_path, 'rb') as f:
+        files = {'torrents': f}
+        response = requests.post(
+            'http://localhost:8080/api/v2/torrents/add',
+            files=files,
+            data={'savepath': '/путь/для/загрузки'}
+        )
+    return response.status_code == 200
+```
+
+## Важные замечания
+1. **Легальность**: Убедитесь, что скачивание игр легально в вашей стране
+2. **Антивирус**: Торрент-файлы и репаки могут содержать вредоносный код
+3. **Обновления**: Структура сайта может меняться, может потребоваться обновление парсера
+4. **Ограничения**: Не злоупотребляйте запросами к сайту
+
+## Обработка ошибок
+- Проверяйте поле `success` в каждом результате
+- Обрабатывайте исключения при сетевых запросах
+- Проверяйте наличие торрент-ссылок перед скачиванием
+
+## Дополнительные возможности
+Модуль также может:
+- Извлекать системные требования игр
+- Получать информацию о репаке
+- Собирать скриншоты игр
+- Работать с magnet-ссылками
+
+## Тестирование
+Для тестирования модуля запустите:
+```bash
+python modules/xatab_parser.py
+```
+
+## Поддержка
+При возникновении проблем:
+1. Проверьте интернет-соединение
+2. Убедитесь, что сайт xatab-repack.ru доступен
+3. Проверьте установленные зависимости
+4. Обновите парсер при изменении структуры сайта
