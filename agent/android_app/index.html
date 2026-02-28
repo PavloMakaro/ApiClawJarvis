@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Джарвис</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-left">
+                <button id="menu-btn" class="icon-btn"><span class="material-icons-round">menu</span></button>
+                <h1>Джарвис</h1>
+            </div>
+            <div class="header-right">
+                <button id="settings-btn" class="icon-btn"><span class="material-icons-round">settings</span></button>
+            </div>
+        </header>
+
+        <main id="chat-container">
+            <div class="message system-message" id="welcome-message">
+                <div class="avatar">
+                    <span class="material-icons-round">smart_toy</span>
+                </div>
+                <div class="content">
+                    Здравствуйте, сэр. Джарвис к вашим услугам.
+                </div>
+            </div>
+            <!-- Сообщения будут появляться здесь -->
+        </main>
+
+        <div id="attachment-preview" class="hidden">
+            <div class="preview-content">
+                <span class="material-icons-round">description</span>
+                <span id="attachment-name">файл.jpg</span>
+                <button id="remove-attachment" class="icon-btn"><span class="material-icons-round">close</span></button>
+            </div>
+        </div>
+
+        <footer>
+            <div class="input-area">
+                <input type="file" id="file-input" style="display: none;">
+                <button id="attach-btn" class="icon-btn"><span class="material-icons-round">add</span></button>
+                <div class="input-wrapper">
+                    <textarea id="message-input" placeholder="Введите сообщение..." rows="1"></textarea>
+                </div>
+                <button id="voice-btn" class="icon-btn"><span class="material-icons-round">mic</span></button>
+                <button id="send-btn" class="icon-btn hidden"><span class="material-icons-round">arrow_upward</span></button>
+                <button id="stop-btn" class="icon-btn hidden"><span class="material-icons-round">stop</span></button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Модальное окно настроек -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Настройки</h2>
+                <button id="close-settings" class="icon-btn"><span class="material-icons-round">close</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <label for="api-url">URL сервера (API)</label>
+                    <input type="text" id="api-url" placeholder="http://192.168.x.x:8080">
+                    <small>Введите локальный IP вашего сервера, который указан в api_endpoints.txt</small>
+                </div>
+                <div class="setting-item">
+                    <label for="chat-id">ID пользователя (Chat ID)</label>
+                    <input type="text" id="chat-id" value="android_user">
+                </div>
+                <div class="setting-actions">
+                    <button id="clear-memory-btn" class="danger-btn">Очистить память сессии</button>
+                    <button id="save-settings-btn" class="primary-btn">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Индикатор записи голоса -->
+    <div id="recording-overlay" class="hidden">
+        <div class="recording-indicator">
+            <div class="pulse"></div>
+            <span class="material-icons-round mic-recording">mic</span>
+            <p id="recording-time">0:00</p>
+            <p class="instruction">Отпустите, чтобы отправить<br>Свайп влево для отмены</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

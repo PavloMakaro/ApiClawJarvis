@@ -35,42 +35,15 @@ watcher.start()
 # Initialize Agent
 agent = Agent(registry)
 
-# Persistence
-SESSIONS_FILE = "data/sessions.json"
-DOWNLOADS_DIR = "downloads"
-
-
-def ensure_downloads_dir():
-    if not os.path.exists(DOWNLOADS_DIR):
-        os.makedirs(DOWNLOADS_DIR)
-
-
-ensure_downloads_dir()
-
-
-def load_sessions():
-    if os.path.exists(SESSIONS_FILE):
-        try:
-            with open(SESSIONS_FILE, "r") as f:
-                return json.load(f)
-        except Exception as e:
-            logging.warning(f"Failed to load sessions: {e}")
-            return {}
-    return {}
-
-
-def save_sessions():
-    if not os.path.exists("data"):
-        os.makedirs("data")
-    with open(SESSIONS_FILE, "w") as f:
-        json.dump(user_sessions, f)
-
-
-# In-memory session storage (loaded from file)
-user_sessions = load_sessions()
-user_usage = {}  # Session token usage
-session_summarized_at = {}  # Защита от повторной суммаризации на границе
-session_lock = asyncio.Lock()
+from core.state import (
+    user_sessions,
+    user_usage,
+    session_summarized_at,
+    session_lock,
+    running_tasks,
+    save_sessions,
+    DOWNLOADS_DIR
+)
 
 # Token counting — лёгкая аппроксимация без tiktoken
 # ~1 токен на 3.5 символа для русского/смешанного текста (точнее чем //4)
@@ -80,10 +53,6 @@ def count_tokens(text):
     s = str(text)
     # Для русского текста ~3.5 символа на токен, для английского ~4
     return max(1, int(len(s) / 3.5))
-
-
-# Task management for stopping
-running_tasks = {}
 
 
 async def summarize_history(history_slice):

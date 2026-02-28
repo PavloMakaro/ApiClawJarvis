@@ -3,15 +3,14 @@ import json
 import logging
 from aiohttp import web
 
-from bot import process_agent_loop_api, user_sessions, session_lock, save_sessions, user_usage, running_tasks
+from bot import process_agent_loop_api
+from core.state import user_sessions, session_lock, save_sessions, user_usage, running_tasks, DOWNLOADS_DIR
 
 logger = logging.getLogger(__name__)
 
 import os
 import time
 import socket
-
-DOWNLOADS_DIR = "downloads"
 
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -57,7 +56,7 @@ async def chat_endpoint(request):
                 if not os.path.exists(user_dir):
                     os.makedirs(user_dir)
 
-                filename = part.filename or f"{int(time.time())}_upload"
+                filename = os.path.basename(part.filename) if part.filename else f"{int(time.time())}_upload"
                 file_path = os.path.join(user_dir, f"{int(time.time())}_{filename}")
 
                 with open(file_path, 'wb') as f:
